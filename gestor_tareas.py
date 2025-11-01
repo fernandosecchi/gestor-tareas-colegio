@@ -19,8 +19,9 @@ DEPENDENCIAS:
   * string_a_fecha(): Convierte texto a objeto fecha para comparaciones
 """
 
-# Importación de funciones de materias: selección y gestión del catálogo
-from materias import seleccionar_materia, submenu_gestionar_materias
+# Importación de funciones de materias
+from materias import seleccionar_materia  # Para seleccionar materias al crear tareas
+from gestor_materias import submenu_gestionar_materias  # Para gestionar el catálogo
 
 # Importación de todas las utilidades necesarias para la interfaz y fechas
 from utils import (
