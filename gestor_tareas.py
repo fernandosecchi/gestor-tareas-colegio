@@ -3,8 +3,12 @@ GESTOR DE TAREAS DEL COLEGIO
 """
 
 from materias import seleccionar_materia
-
-from utils import limpiar_pantalla, pausar, linea_separadora
+from utils import (
+    limpiar_pantalla, pausar, linea_separadora,
+    validar_fecha, calcular_dias_restantes,
+    obtener_indicador_urgencia, formatear_fecha_corta,
+    string_a_fecha
+)
 
 # ============================================
 # DATOS GLOBALES (en memoria)
@@ -88,12 +92,29 @@ def obtener_estadisticas():
         "porcentaje_completado": porcentaje
     }
 
+def obtener_tareas_ordenadas_por_fecha():
+    """Devuelve las tareas ordenadas por fecha de vencimiento (más urgentes primero)"""
+    tareas_lista = []
+
+    for codigo, info in tareas_colegio.items():
+        fecha = string_a_fecha(info.get("fecha_fin", ""))
+        # Si no puede parsear la fecha, la pone al final
+        if fecha is None:
+            fecha = string_a_fecha("31/12/9999")
+        tareas_lista.append((fecha, codigo, info))
+
+    # Ordenar por fecha
+    tareas_lista.sort(key=lambda x: x[0])
+
+    # Reconstruir el diccionario ordenado
+    return {codigo: info for fecha, codigo, info in tareas_lista}
+
 # ============================================
 # FUNCIONES DE VISUALIZACIÓN
 # ============================================
 
 def mostrar_lista_tareas(tareas_dict=None, titulo="LISTA DE TAREAS"):
-    """Muestra una lista de tareas en formato tabla"""
+    """Muestra una lista de tareas en formato tabla con indicadores de urgencia"""
     if tareas_dict is None:
         tareas_dict = tareas_colegio
 
@@ -107,14 +128,23 @@ def mostrar_lista_tareas(tareas_dict=None, titulo="LISTA DE TAREAS"):
         return
 
     # Encabezados
-    print(f"{'CODIGO':<8} {'MATERIA':<15} {'TAREA':<25} {'ESTADO':<12}")
-    linea_separadora(60, "-")
+    print(f"{'CODIGO':<8} {'MATERIA':<15} {'TAREA':<25} {'VENCE':<15} {'ESTADO':<12}")
+    linea_separadora(80, "-")
 
     for codigo, info in sorted(tareas_dict.items()):
         materia = info.get("materia", "")[:14]
         tarea = info.get("tarea", "")[:24]
         estado = info.get("estado", "En proceso")
-        print(f"{codigo:<8} {materia:<15} {tarea:<25} {estado:<12}")
+
+        # Calcular días restantes y obtener indicador
+        dias = calcular_dias_restantes(info.get("fecha_fin", ""))
+        urgencia = obtener_indicador_urgencia(dias)
+
+        # Si la tarea está completada, mostrar indicador diferente
+        if estado == "Completada":
+            urgencia = "COMPLETADA"
+
+        print(f"{codigo:<8} {materia:<15} {tarea:<25} {urgencia:<15} {estado:<12}")
 
     print(f"\nTotal: {len(tareas_dict)} tarea(s)")
 
@@ -134,6 +164,13 @@ def mostrar_detalle_tarea(codigo):
     print(f"Tarea: {tarea['tarea']}")
     print(f"Fecha inicio: {tarea['fecha_inicio']}")
     print(f"Fecha fin: {tarea['fecha_fin']}")
+
+    # Mostrar días restantes si la tarea no está completada
+    if tarea['estado'] == "En proceso":
+        dias = calcular_dias_restantes(tarea['fecha_fin'])
+        indicador = obtener_indicador_urgencia(dias)
+        print(f"Tiempo restante: {indicador}")
+
     print(f"Estado: {tarea['estado']}")
     if tarea.get('observaciones'):
         print(f"Observaciones: {tarea['observaciones']}")
@@ -162,17 +199,32 @@ def opcion_agregar_tarea():
         print("La descripcion es obligatoria")
         return
 
-    # Pedir fecha de inicio
-    fecha_inicio = input("Fecha de inicio (DD/MM/AAAA): ").strip()
-    if not fecha_inicio:
-        print("La fecha de inicio es obligatoria")
-        return
+    # Pedir fecha de inicio con validación
+    while True:
+        fecha_inicio = input("Fecha de inicio (DD/MM/AAAA): ").strip()
+        if not fecha_inicio:
+            print("La fecha de inicio es obligatoria")
+            continue
+        if not validar_fecha(fecha_inicio):
+            print("Formato invalido. Use DD/MM/AAAA (ej: 15/11/2024)")
+            continue
+        break
 
-    # Pedir fecha de fin/vencimiento
-    fecha_fin = input("Fecha de vencimiento (DD/MM/AAAA): ").strip()
-    if not fecha_fin:
-        print("La fecha de vencimiento es obligatoria")
-        return
+    # Pedir fecha de fin/vencimiento con validación
+    while True:
+        fecha_fin = input("Fecha de vencimiento (DD/MM/AAAA): ").strip()
+        if not fecha_fin:
+            print("La fecha de vencimiento es obligatoria")
+            continue
+        if not validar_fecha(fecha_fin):
+            print("Formato invalido. Use DD/MM/AAAA (ej: 20/11/2024)")
+            continue
+
+        # Validar que la fecha fin no sea anterior a la fecha inicio
+        if string_a_fecha(fecha_fin) < string_a_fecha(fecha_inicio):
+            print("La fecha de vencimiento no puede ser anterior a la fecha de inicio")
+            continue
+        break
 
     # Pedir observaciones (opcional)
     observaciones = input("Observaciones o notas (opcional): ").strip()
@@ -230,11 +282,22 @@ def opcion_editar_tarea():
 
     nueva_fecha_inicio = input(f"Fecha inicio [{tarea_info['fecha_inicio']}]: ").strip()
     if nueva_fecha_inicio:
-        tarea_info['fecha_inicio'] = nueva_fecha_inicio
+        if validar_fecha(nueva_fecha_inicio):
+            tarea_info['fecha_inicio'] = nueva_fecha_inicio
+        else:
+            print("Formato invalido. Se mantiene la fecha actual")
 
     nueva_fecha_fin = input(f"Fecha vencimiento [{tarea_info['fecha_fin']}]: ").strip()
     if nueva_fecha_fin:
-        tarea_info['fecha_fin'] = nueva_fecha_fin
+        if validar_fecha(nueva_fecha_fin):
+            # Validar que no sea anterior a fecha inicio
+            fecha_inicio_actual = tarea_info.get('fecha_inicio', '')
+            if fecha_inicio_actual and string_a_fecha(nueva_fecha_fin) < string_a_fecha(fecha_inicio_actual):
+                print("La fecha de vencimiento no puede ser anterior a la fecha de inicio")
+            else:
+                tarea_info['fecha_fin'] = nueva_fecha_fin
+        else:
+            print("Formato invalido. Se mantiene la fecha actual")
 
     nuevas_obs = input(f"Observaciones [{tarea_info.get('observaciones', '')}]: ").strip()
     if nuevas_obs:
@@ -296,8 +359,9 @@ def submenu_ver_tareas():
         "1": ("Ver todas las tareas", lambda: mostrar_lista_tareas()),
         "2": ("Ver tareas pendientes", lambda: mostrar_lista_tareas(obtener_tareas_pendientes(), "TAREAS PENDIENTES")),
         "3": ("Ver tareas completadas", lambda: mostrar_lista_tareas(obtener_tareas_completadas(), "TAREAS COMPLETADAS")),
-        "4": ("Ver detalle de una tarea", opcion_ver_detalle),
-        "5": ("Volver al menu principal", None),
+        "4": ("Ver tareas por fecha de vencimiento", lambda: mostrar_lista_tareas(obtener_tareas_ordenadas_por_fecha(), "TAREAS POR FECHA DE VENCIMIENTO")),
+        "5": ("Ver detalle de una tarea", opcion_ver_detalle),
+        "6": ("Volver al menu principal", None),
     }
 
     while True:
@@ -311,9 +375,9 @@ def submenu_ver_tareas():
 
         linea_separadora()
 
-        opcion = input("\nSeleccione una opcion (1-5): ").strip()
+        opcion = input("\nSeleccione una opcion (1-6): ").strip()
 
-        if opcion == "5":
+        if opcion == "6":
             break
 
         if opcion in opciones and opciones[opcion][1]:
