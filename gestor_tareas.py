@@ -13,7 +13,7 @@ from utils import (
 # ============================================
 # DATOS GLOBALES (en memoria)
 # ============================================
-tareas_colegio = {}  # {codigo: {materia, descripcion, fecha_fin, completada}}
+tareas_colegio = {}
 siguiente_numero = 1
 
 # ============================================

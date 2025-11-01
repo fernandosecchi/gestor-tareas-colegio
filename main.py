@@ -1,17 +1,15 @@
 """
 GESTOR DE TAREAS DEL COLEGIO - Punto de entrada
-Sistema simplificado sin persistencia
 """
 
-from gestor_tareas import ejecutar_menu_principal, obtener_estadisticas
+from gestor_tareas import ejecutar_menu_principal
 from utils import mostrar_despedida
 
 def main():
     """Función principal del programa"""
     try:
         ejecutar_menu_principal()
-        stats = obtener_estadisticas()
-        mostrar_despedida(stats)
+        mostrar_despedida()
 
     except KeyboardInterrupt:
         print("\n\nPrograma interrumpido por el usuario")

@@ -14,21 +14,8 @@ def pausar():
     """Pausa hasta que el usuario presione Enter"""
     input("\nPresione ENTER para continuar...")
 
-def mostrar_despedida(estadisticas):
-    """Muestra resumen final al salir
-
-    Args:
-        estadisticas: diccionario con total, completadas, pendientes, porcentaje_completado
-    """
-    print()
-    linea_separadora(50)
-    print("RESUMEN DE LA SESION")
-    linea_separadora(50)
-    print(f"Total de tareas: {estadisticas['total']}")
-    print(f"Completadas: {estadisticas['completadas']}")
-    print(f"Pendientes: {estadisticas['pendientes']}")
-    if estadisticas['total'] > 0:
-        print(f"Progreso: {estadisticas['porcentaje_completado']:.1f}%")
+def mostrar_despedida():
+    """Muestra mensaje de despedida simple"""
     print("\nHasta luego!")
 
 def linea_separadora(ancho=60, caracter="="):
