@@ -7,8 +7,8 @@ Maneja el almacenamiento en memoria, las operaciones CRUD (crear, leer, actualiz
 eliminar), la visualización de datos y el sistema de menús.
 
 DEPENDENCIAS:
-- materias.py: Necesario para seleccionar_materia(), que permite al usuario
-  elegir una materia de una lista predefinida al crear tareas
+- gestor_materias.py: Necesario para seleccionar_materia() y submenu_gestionar_materias(),
+  maneja todo lo relacionado con el catálogo de materias
 - utils.py: Proporciona funciones auxiliares para:
   * limpiar_pantalla(): Limpia la consola para mejor visualización
   * pausar(): Detiene el flujo hasta que el usuario presione Enter
@@ -19,9 +19,8 @@ DEPENDENCIAS:
   * string_a_fecha(): Convierte texto a objeto fecha para comparaciones
 """
 
-# Importación de funciones de materias
-from materias import seleccionar_materia  # Para seleccionar materias al crear tareas
-from gestor_materias import submenu_gestionar_materias  # Para gestionar el catálogo
+# Importación de funciones desde gestor_materias (todo está consolidado ahí)
+from gestor_materias import seleccionar_materia, submenu_gestionar_materias
 
 # Importación de todas las utilidades necesarias para la interfaz y fechas
 from utils import (
