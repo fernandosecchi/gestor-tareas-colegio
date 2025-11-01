@@ -1,8 +1,28 @@
 """
 GESTOR DE TAREAS DEL COLEGIO
+
+UTILIDAD:
+Este archivo contiene toda la lógica principal del sistema de gestión de tareas.
+Maneja el almacenamiento en memoria, las operaciones CRUD (crear, leer, actualizar,
+eliminar), la visualización de datos y el sistema de menús.
+
+DEPENDENCIAS:
+- materias.py: Necesario para seleccionar_materia(), que permite al usuario
+  elegir una materia de una lista predefinida al crear tareas
+- utils.py: Proporciona funciones auxiliares para:
+  * limpiar_pantalla(): Limpia la consola para mejor visualización
+  * pausar(): Detiene el flujo hasta que el usuario presione Enter
+  * linea_separadora(): Dibuja líneas decorativas en la interfaz
+  * validar_fecha(): Verifica que las fechas tengan formato DD/MM/AAAA
+  * calcular_dias_restantes(): Calcula días hasta el vencimiento
+  * obtener_indicador_urgencia(): Genera indicadores como [HOY], [MANANA], etc.
+  * string_a_fecha(): Convierte texto a objeto fecha para comparaciones
 """
 
+# Importación de la función para seleccionar materias desde el catálogo
 from materias import seleccionar_materia
+
+# Importación de todas las utilidades necesarias para la interfaz y fechas
 from utils import (
     limpiar_pantalla, pausar, linea_separadora,
     validar_fecha, calcular_dias_restantes,
@@ -13,7 +33,9 @@ from utils import (
 # ============================================
 # DATOS GLOBALES (en memoria)
 # ============================================
+# Diccionario principal que almacena todas las tareas {codigo: datos_tarea}
 tareas_colegio = {}
+# Contador para generar códigos únicos T001, T002, T003...
 siguiente_numero = 1
 
 # ============================================
@@ -22,69 +44,94 @@ siguiente_numero = 1
 
 def obtener_tareas():
     """Devuelve todas las tareas"""
+    # Retorna el diccionario completo de tareas
     return tareas_colegio
 
 def generar_codigo():
     """Genera un código único con formato T001, T002, etc."""
+    # Accede a la variable global para poder modificarla
     global siguiente_numero
+    # Formatea el número con 3 dígitos (001, 002, 003...)
     codigo = f"T{siguiente_numero:03d}"
+    # Incrementa el contador para el próximo código
     siguiente_numero += 1
+    # Devuelve el código generado
     return codigo
 
 def agregar_tarea(materia, tarea, fecha_inicio, fecha_fin, observaciones=""):
     """Agrega una nueva tarea con todos los campos requeridos"""
+    # Genera un código único para esta nueva tarea
     codigo = generar_codigo()
 
+    # Crea un diccionario con todos los datos de la tarea
     tareas_colegio[codigo] = {
-        "materia": materia,
-        "tarea": tarea,
-        "fecha_inicio": fecha_inicio,
-        "fecha_fin": fecha_fin,
-        "estado": "En proceso",  # "En proceso" o "Completada"
-        "codigo": codigo,
-        "observaciones": observaciones
+        "materia": materia,              # Nombre de la asignatura
+        "tarea": tarea,                  # Descripción de la tarea
+        "fecha_inicio": fecha_inicio,    # Cuándo comenzar (DD/MM/AAAA)
+        "fecha_fin": fecha_fin,          # Fecha de vencimiento (DD/MM/AAAA)
+        "estado": "En proceso",          # Estado inicial (puede ser "Completada" después)
+        "codigo": codigo,                # Código único de identificación
+        "observaciones": observaciones   # Notas adicionales (opcional)
     }
 
+    # Retorna el código asignado para confirmar al usuario
     return codigo
 
 def obtener_tarea(codigo):
     """Obtiene una tarea por su código"""
+    # Busca el código en el diccionario, devuelve None si no existe
     return tareas_colegio.get(codigo, None)
 
 def marcar_completada(codigo):
     """Marca una tarea como completada"""
+    # Verifica si el código existe en el diccionario
     if codigo in tareas_colegio:
+        # Cambia el estado de "En proceso" a "Completada"
         tareas_colegio[codigo]["estado"] = "Completada"
+        # Retorna True indicando éxito
         return True
+    # Retorna False si no encontró la tarea
     return False
 
 def eliminar_tarea(codigo):
     """Elimina una tarea"""
+    # Verifica si el código existe
     if codigo in tareas_colegio:
+        # Elimina la entrada del diccionario
         del tareas_colegio[codigo]
+        # Retorna True indicando éxito
         return True
+    # Retorna False si no encontró la tarea
     return False
 
 def obtener_tareas_pendientes():
     """Devuelve solo las tareas en proceso"""
+    # Crea un nuevo diccionario filtrando solo las tareas con estado "En proceso"
     return {cod: info for cod, info in tareas_colegio.items()
             if info.get("estado") == "En proceso"}
 
 def obtener_tareas_completadas():
     """Devuelve solo las tareas completadas"""
+    # Crea un nuevo diccionario filtrando solo las tareas con estado "Completada"
     return {cod: info for cod, info in tareas_colegio.items()
             if info.get("estado") == "Completada"}
 
 def obtener_estadisticas():
     """Calcula estadísticas de las tareas"""
+    # Cuenta el total de tareas en el diccionario
     total = len(tareas_colegio)
+    # Cuenta cuántas tareas están completadas usando una expresión generadora
     completadas = sum(1 for t in tareas_colegio.values() if t.get("estado") == "Completada")
+    # Calcula las pendientes por diferencia
     pendientes = total - completadas
 
+    # Inicializa el porcentaje en 0
     porcentaje = 0
+    # Solo calcula porcentaje si hay tareas para evitar división por cero
     if total > 0:
         porcentaje = (completadas / total) * 100
 
+    # Retorna un diccionario con todas las estadísticas
     return {
         "total": total,
         "completadas": completadas,
@@ -94,19 +141,23 @@ def obtener_estadisticas():
 
 def obtener_tareas_ordenadas_por_fecha():
     """Devuelve las tareas ordenadas por fecha de vencimiento (más urgentes primero)"""
+    # Lista temporal para almacenar tuplas (fecha, código, info)
     tareas_lista = []
 
+    # Recorre todas las tareas del diccionario
     for codigo, info in tareas_colegio.items():
+        # Convierte la fecha de texto a objeto fecha para poder ordenar
         fecha = string_a_fecha(info.get("fecha_fin", ""))
-        # Si no puede parsear la fecha, la pone al final
+        # Si la fecha es inválida, la pone al final con una fecha muy lejana
         if fecha is None:
             fecha = string_a_fecha("31/12/9999")
+        # Agrega la tupla a la lista
         tareas_lista.append((fecha, codigo, info))
 
-    # Ordenar por fecha
+    # Ordena la lista por el primer elemento de cada tupla (la fecha)
     tareas_lista.sort(key=lambda x: x[0])
 
-    # Reconstruir el diccionario ordenado
+    # Reconstruye un diccionario ordenado usando comprensión de diccionarios
     return {codigo: info for fecha, codigo, info in tareas_lista}
 
 # ============================================
@@ -115,37 +166,51 @@ def obtener_tareas_ordenadas_por_fecha():
 
 def mostrar_lista_tareas(tareas_dict=None, titulo="LISTA DE TAREAS"):
     """Muestra una lista de tareas en formato tabla con indicadores de urgencia"""
+    # Si no se pasa un diccionario específico, usa todas las tareas
     if tareas_dict is None:
         tareas_dict = tareas_colegio
 
+    # Limpia la consola para una visualización limpia
     limpiar_pantalla()
+    # Dibuja línea decorativa superior
     linea_separadora()
+    # Imprime el título centrado
     print(f"  {titulo}")
+    # Dibuja línea decorativa inferior
     linea_separadora()
 
+    # Si no hay tareas, muestra mensaje y termina
     if not tareas_dict:
         print("\nNo hay tareas para mostrar\n")
         return
 
-    # Encabezados
+    # Imprime los encabezados de las columnas con formato fijo
     print(f"{'CODIGO':<8} {'MATERIA':<15} {'TAREA':<25} {'VENCE':<15} {'ESTADO':<12}")
+    # Línea separadora más delgada para los encabezados
     linea_separadora(80, "-")
 
+    # Itera sobre las tareas ordenadas por código
     for codigo, info in sorted(tareas_dict.items()):
+        # Extrae y trunca la materia a 14 caracteres máximo
         materia = info.get("materia", "")[:14]
+        # Extrae y trunca la descripción a 24 caracteres máximo
         tarea = info.get("tarea", "")[:24]
+        # Obtiene el estado actual de la tarea
         estado = info.get("estado", "En proceso")
 
-        # Calcular días restantes y obtener indicador
+        # Calcula cuántos días faltan para el vencimiento
         dias = calcular_dias_restantes(info.get("fecha_fin", ""))
+        # Obtiene el indicador textual ([HOY], [MANANA], etc.)
         urgencia = obtener_indicador_urgencia(dias)
 
-        # Si la tarea está completada, mostrar indicador diferente
+        # Si la tarea está completada, sobrescribe el indicador
         if estado == "Completada":
             urgencia = "COMPLETADA"
 
+        # Imprime la fila con formato de columnas alineadas
         print(f"{codigo:<8} {materia:<15} {tarea:<25} {urgencia:<15} {estado:<12}")
 
+    # Muestra el total de tareas al final
     print(f"\nTotal: {len(tareas_dict)} tarea(s)")
 
 def mostrar_detalle_tarea(codigo):
@@ -182,56 +247,67 @@ def mostrar_detalle_tarea(codigo):
 
 def opcion_agregar_tarea():
     """Agrega una nueva tarea"""
+    # Limpia la pantalla para mostrar el formulario
     limpiar_pantalla()
+    # Dibuja el encabezado del formulario
     linea_separadora(50)
     print("  AGREGAR NUEVA TAREA")
     linea_separadora(50)
 
-    # Seleccionar materia
+    # Llama a la función de materias.py para mostrar lista y seleccionar
     materia = seleccionar_materia()
+    # Si el usuario cancela o no selecciona, termina la función
     if not materia:
         print("Operacion cancelada")
         return
 
-    # Pedir descripción de la tarea
+    # Solicita la descripción de la tarea
     tarea = input("\nDescripcion de la tarea: ").strip()
+    # Valida que no esté vacía
     if not tarea:
         print("La descripcion es obligatoria")
         return
 
-    # Pedir fecha de inicio con validación
+    # Bucle para validar fecha de inicio
     while True:
+        # Pide la fecha de inicio
         fecha_inicio = input("Fecha de inicio (DD/MM/AAAA): ").strip()
+        # Verifica que no esté vacía
         if not fecha_inicio:
             print("La fecha de inicio es obligatoria")
-            continue
+            continue  # Vuelve a pedir
+        # Valida el formato usando la función de utils.py
         if not validar_fecha(fecha_inicio):
             print("Formato invalido. Use DD/MM/AAAA (ej: 15/11/2024)")
-            continue
-        break
+            continue  # Vuelve a pedir
+        break  # Sale del bucle si todo está bien
 
-    # Pedir fecha de fin/vencimiento con validación
+    # Bucle para validar fecha de vencimiento
     while True:
+        # Pide la fecha de vencimiento
         fecha_fin = input("Fecha de vencimiento (DD/MM/AAAA): ").strip()
+        # Verifica que no esté vacía
         if not fecha_fin:
             print("La fecha de vencimiento es obligatoria")
             continue
+        # Valida el formato
         if not validar_fecha(fecha_fin):
             print("Formato invalido. Use DD/MM/AAAA (ej: 20/11/2024)")
             continue
 
-        # Validar que la fecha fin no sea anterior a la fecha inicio
+        # Convierte ambas fechas a objetos fecha para compararlas
         if string_a_fecha(fecha_fin) < string_a_fecha(fecha_inicio):
             print("La fecha de vencimiento no puede ser anterior a la fecha de inicio")
-            continue
-        break
+            continue  # Vuelve a pedir si la fecha es inválida
+        break  # Sale del bucle si todo está bien
 
-    # Pedir observaciones (opcional)
+    # Campo opcional para notas adicionales
     observaciones = input("Observaciones o notas (opcional): ").strip()
 
-    # Agregar la tarea
+    # Llama a la función que guarda la tarea en el diccionario
     codigo = agregar_tarea(materia, tarea, fecha_inicio, fecha_fin, observaciones)
 
+    # Muestra confirmación con el código asignado
     print("\nTarea agregada exitosamente")
     print(f"Codigo asignado: {codigo}")
 
