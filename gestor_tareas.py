@@ -9,7 +9,7 @@ eliminar), la visualización de datos y el sistema de menús.
 DEPENDENCIAS:
 - gestor_materias.py: Necesario para seleccionar_materia() y submenu_gestionar_materias(),
   maneja todo lo relacionado con el catálogo de materias
-- utils.py: Proporciona funciones auxiliares para:
+- herramientas.py: Proporciona funciones auxiliares para:
   * limpiar_pantalla(): Limpia la consola para mejor visualización
   * pausar(): Detiene el flujo hasta que el usuario presione Enter
   * linea_separadora(): Dibuja líneas decorativas en la interfaz
@@ -23,7 +23,7 @@ DEPENDENCIAS:
 from gestor_materias import seleccionar_materia, submenu_gestionar_materias
 
 # Importación de todas las utilidades necesarias para la interfaz y fechas
-from utils import (
+from herramientas import (
     limpiar_pantalla, pausar, linea_separadora,
     validar_fecha, calcular_dias_restantes,
     obtener_indicador_urgencia, formatear_fecha_corta,
@@ -37,6 +37,128 @@ from utils import (
 tareas_colegio = {}
 # Contador para generar códigos únicos T001, T002, T003...
 siguiente_numero = 1
+
+# ============================================
+# TAREAS DE EJEMPLO
+# ============================================
+
+def cargar_tareas_ejemplo():
+    """Carga un conjunto de tareas de ejemplo al iniciar el sistema
+
+    Como el sistema no tiene persistencia, estas tareas ayudan a:
+    - Demostrar la funcionalidad del sistema
+    - Facilitar las pruebas
+    - Dar contexto de uso al usuario
+    """
+    from datetime import datetime, timedelta
+
+    # Obtiene la fecha actual para crear fechas relativas
+    hoy = datetime.now()
+
+    # Función auxiliar para formatear fechas
+    def fecha_str(dias_desde_hoy):
+        fecha = hoy + timedelta(days=dias_desde_hoy)
+        return fecha.strftime("%d/%m/%Y")
+
+    # Lista de tareas de ejemplo con diferentes estados y fechas
+    tareas_ejemplo = [
+        # Tareas vencidas
+        {
+            "materia": "Matematicas",
+            "tarea": "Resolver ejercicios del capitulo 3",
+            "fecha_inicio": fecha_str(-5),
+            "fecha_fin": fecha_str(-2),
+            "observaciones": "Ejercicios 1 al 15 de la pagina 45",
+            "estado": "En proceso"
+        },
+        # Tarea para hoy
+        {
+            "materia": "Historia",
+            "tarea": "Entregar ensayo sobre la Revolucion Francesa",
+            "fecha_inicio": fecha_str(-7),
+            "fecha_fin": fecha_str(0),
+            "observaciones": "Minimo 3 paginas, incluir bibliografia",
+            "estado": "En proceso"
+        },
+        # Tarea para mañana
+        {
+            "materia": "Ingles",
+            "tarea": "Presentacion oral sobre mi familia",
+            "fecha_inicio": fecha_str(-3),
+            "fecha_fin": fecha_str(1),
+            "observaciones": "5 minutos de duracion, usar PowerPoint",
+            "estado": "En proceso"
+        },
+        # Tareas para la próxima semana
+        {
+            "materia": "Fisica",
+            "tarea": "Laboratorio de movimiento rectilineo",
+            "fecha_inicio": fecha_str(0),
+            "fecha_fin": fecha_str(3),
+            "observaciones": "Traer bata de laboratorio y calculadora",
+            "estado": "En proceso"
+        },
+        {
+            "materia": "Lengua",
+            "tarea": "Leer capitulos 5-8 del libro",
+            "fecha_inicio": fecha_str(-1),
+            "fecha_fin": fecha_str(5),
+            "observaciones": "Preparar resumen de cada capitulo",
+            "estado": "En proceso"
+        },
+        # Tarea con más tiempo
+        {
+            "materia": "Arte",
+            "tarea": "Proyecto final de pintura",
+            "fecha_inicio": fecha_str(0),
+            "fecha_fin": fecha_str(14),
+            "observaciones": "Tema libre, tecnica acuarela o oleo",
+            "estado": "En proceso"
+        },
+        # Tareas completadas
+        {
+            "materia": "Geografia",
+            "tarea": "Mapa politico de America del Sur",
+            "fecha_inicio": fecha_str(-10),
+            "fecha_fin": fecha_str(-3),
+            "observaciones": "Incluir capitales y principales rios",
+            "estado": "Completada"
+        },
+        {
+            "materia": "Quimica",
+            "tarea": "Informe de laboratorio - Reacciones quimicas",
+            "fecha_inicio": fecha_str(-8),
+            "fecha_fin": fecha_str(-4),
+            "observaciones": "Experimento con acidos y bases",
+            "estado": "Completada"
+        },
+        {
+            "materia": "Musica",
+            "tarea": "Aprender partitura de flauta",
+            "fecha_inicio": fecha_str(-6),
+            "fecha_fin": fecha_str(-1),
+            "observaciones": "Cancion: Himno a la Alegria",
+            "estado": "Completada"
+        }
+    ]
+
+    # Agrega cada tarea usando la función existente
+    print("Cargando tareas de ejemplo...")
+    for tarea_data in tareas_ejemplo:
+        agregar_tarea(
+            tarea_data["materia"],
+            tarea_data["tarea"],
+            tarea_data["fecha_inicio"],
+            tarea_data["fecha_fin"],
+            tarea_data["observaciones"]
+        )
+        # Si la tarea debe estar completada, la marca como tal
+        if tarea_data["estado"] == "Completada":
+            # Obtiene el último código agregado
+            ultimo_codigo = f"T{siguiente_numero - 1:03d}"
+            marcar_completada(ultimo_codigo)
+
+    print(f"Se cargaron {len(tareas_ejemplo)} tareas de ejemplo.")
 
 # ============================================
 # FUNCIONES DE GESTIÓN DE TAREAS

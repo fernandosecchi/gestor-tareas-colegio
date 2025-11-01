@@ -1,5 +1,5 @@
 """
-MÓDULO DE UTILIDADES
+MÓDULO DE HERRAMIENTAS
 Funciones comunes usadas en todo el sistema
 
 UTILIDAD:
@@ -15,7 +15,7 @@ DEPENDENCIAS:
   usado para validar formatos, calcular días restantes y comparar fechas
 
 ¿POR QUÉ NO DEPENDE DE OTROS ARCHIVOS DEL PROYECTO?
-- utils.py es el módulo base que otros archivos usan
+- herramientas.py es el módulo base que otros archivos usan
 - No debe importar de otros módulos del proyecto para evitar dependencias circulares
 - Solo usa módulos estándar de Python
 """

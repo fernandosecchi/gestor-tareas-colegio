@@ -9,24 +9,29 @@ Es el archivo que se ejecuta directamente: python main.py
 DEPENDENCIAS:
 - gestor_tareas.py: Necesita ejecutar_menu_principal() que contiene toda la
   lógica del programa y el sistema de menús
-- utils.py: Necesita mostrar_despedida() para mostrar el mensaje final al salir
+- herramientas.py: Necesita mostrar_despedida() para mostrar el mensaje final al salir
 
 ¿POR QUÉ ESTAS DEPENDENCIAS?
 - gestor_tareas.py maneja toda la lógica, por eso main.py solo lo llama
-- utils.py tiene la función de despedida para mantener main.py simple
+- herramientas.py tiene la función de despedida para mantener main.py simple
 """
 
 # Importa la función principal que ejecuta todo el sistema de menús
-from gestor_tareas import ejecutar_menu_principal
+# y la función para cargar tareas de ejemplo
+from gestor_tareas import ejecutar_menu_principal, cargar_tareas_ejemplo
 # Importa la función que muestra el mensaje de despedida
-from utils import mostrar_despedida
+from herramientas import mostrar_despedida
 
 def main():
     """Función principal del programa"""
     try:
+        # Carga las tareas de ejemplo al iniciar
+        # Como no hay persistencia, esto da contexto y demuestra funcionalidad
+        cargar_tareas_ejemplo()
+
         # Ejecuta el menú principal (toda la lógica del programa)
         ejecutar_menu_principal()
-        # Cuando el usuario sale normalmente (opción 7), muestra despedida
+        # Cuando el usuario sale normalmente (opción 9), muestra despedida
         mostrar_despedida()
 
     except KeyboardInterrupt:

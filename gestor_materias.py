@@ -7,14 +7,14 @@ Incluye el catálogo base, funciones de selección y visualización, y todas las
 operaciones de gestión (crear, leer, actualizar, eliminar).
 
 DEPENDENCIAS:
-- utils.py: Proporciona funciones de interfaz (limpiar_pantalla, pausar, linea_separadora)
+- herramientas.py: Proporciona funciones de interfaz (limpiar_pantalla, pausar, linea_separadora)
 
 ¿POR QUÉ ESTA DEPENDENCIA?
-- utils.py centraliza las funciones de interfaz para consistencia en todo el sistema
+- herramientas.py centraliza las funciones de interfaz para consistencia en todo el sistema
 """
 
 # Importa funciones de interfaz
-from utils import limpiar_pantalla, pausar, linea_separadora
+from herramientas import limpiar_pantalla, pausar, linea_separadora
 
 # ============================================
 # CATÁLOGO BASE DE MATERIAS
