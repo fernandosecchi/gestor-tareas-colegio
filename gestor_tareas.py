@@ -19,8 +19,8 @@ DEPENDENCIAS:
   * string_a_fecha(): Convierte texto a objeto fecha para comparaciones
 """
 
-# Importación de la función para seleccionar materias desde el catálogo
-from materias import seleccionar_materia
+# Importación de funciones de materias: selección y gestión del catálogo
+from materias import seleccionar_materia, submenu_gestionar_materias
 
 # Importación de todas las utilidades necesarias para la interfaz y fechas
 from utils import (
@@ -801,14 +801,15 @@ def submenu_buscar_tareas():
 def ejecutar_menu_principal():
     """Ejecuta el menú principal del programa"""
     opciones = {
-        "1": ("Agregar tarea", opcion_agregar_tarea),
-        "2": ("Ver tareas", submenu_ver_tareas),
-        "3": ("Buscar tareas", submenu_buscar_tareas),
-        "4": ("Marcar tarea como completada", opcion_marcar_completada),
-        "5": ("Editar tarea", opcion_editar_tarea),
-        "6": ("Eliminar tarea", opcion_eliminar_tarea),
-        "7": ("Borrar todas las tareas", opcion_borrar_todas),
-        "8": ("Salir", None),
+        "1": ("Gestionar materias", submenu_gestionar_materias),
+        "2": ("Agregar tarea", opcion_agregar_tarea),
+        "3": ("Ver tareas", submenu_ver_tareas),
+        "4": ("Buscar tareas", submenu_buscar_tareas),
+        "5": ("Marcar tarea como completada", opcion_marcar_completada),
+        "6": ("Editar tarea", opcion_editar_tarea),
+        "7": ("Eliminar tarea", opcion_eliminar_tarea),
+        "8": ("Borrar todas las tareas", opcion_borrar_todas),
+        "9": ("Salir", None),
     }
 
     while True:
@@ -824,15 +825,15 @@ def ejecutar_menu_principal():
         print()
         linea_separadora()
 
-        opcion = input("\nSeleccione una opcion (1-8): ").strip()
+        opcion = input("\nSeleccione una opcion (1-9): ").strip()
 
-        if opcion == "8":
+        if opcion == "9":
             break
 
         if opcion in opciones and opciones[opcion][1]:
             try:
                 opciones[opcion][1]()
-                if opcion not in ["2", "3"]:  # No pausar después de los submenús
+                if opcion not in ["1", "3", "4"]:  # No pausar después de los submenús
                     pausar()
             except Exception as e:
                 print(f"\nError: {e}")
