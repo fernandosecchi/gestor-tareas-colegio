@@ -161,6 +161,45 @@ def obtener_tareas_ordenadas_por_fecha():
     return {codigo: info for fecha, codigo, info in tareas_lista}
 
 # ============================================
+# FUNCIONES DE BÚSQUEDA
+# ============================================
+
+def buscar_por_materia(materia_buscar):
+    """Busca tareas que contengan la materia especificada"""
+    # Crea un diccionario con las tareas que coinciden con la materia
+    # La búsqueda no distingue mayúsculas/minúsculas
+    return {cod: info for cod, info in tareas_colegio.items()
+            if materia_buscar.lower() in info.get("materia", "").lower()}
+
+def buscar_por_fecha_vencimiento(fecha_buscar):
+    """Busca tareas por fecha de vencimiento exacta"""
+    # Filtra tareas que tengan exactamente esa fecha de vencimiento
+    return {cod: info for cod, info in tareas_colegio.items()
+            if info.get("fecha_fin", "") == fecha_buscar}
+
+def buscar_por_fecha_inicio(fecha_buscar):
+    """Busca tareas por fecha de inicio exacta"""
+    # Filtra tareas que tengan exactamente esa fecha de inicio
+    return {cod: info for cod, info in tareas_colegio.items()
+            if info.get("fecha_inicio", "") == fecha_buscar}
+
+def buscar_por_estado(estado_buscar):
+    """Busca tareas por estado (En proceso o Completada)"""
+    # Filtra tareas que tengan el estado especificado
+    return {cod: info for cod, info in tareas_colegio.items()
+            if info.get("estado", "") == estado_buscar}
+
+def buscar_por_codigo(codigo_buscar):
+    """Busca una tarea por código exacto"""
+    # Convierte a mayúsculas para hacer la búsqueda
+    codigo_upper = codigo_buscar.upper()
+    # Si existe el código, retorna un diccionario con esa tarea
+    if codigo_upper in tareas_colegio:
+        return {codigo_upper: tareas_colegio[codigo_upper]}
+    # Si no existe, retorna diccionario vacío
+    return {}
+
+# ============================================
 # FUNCIONES DE VISUALIZACIÓN
 # ============================================
 
@@ -429,6 +468,117 @@ def opcion_borrar_todas():
     else:
         print("Operacion cancelada")
 
+# ============================================
+# FUNCIONES DE OPCIONES DE BÚSQUEDA
+# ============================================
+
+def opcion_buscar_por_materia():
+    """Busca tareas por materia"""
+    # Solicita el término de búsqueda
+    materia = input("\nIngrese la materia a buscar: ").strip()
+    if not materia:
+        print("Debe ingresar una materia")
+        return
+
+    # Busca las tareas
+    resultados = buscar_por_materia(materia)
+
+    # Muestra los resultados
+    if resultados:
+        mostrar_lista_tareas(resultados, f"TAREAS DE: {materia.upper()}")
+    else:
+        print(f"\nNo se encontraron tareas de {materia}")
+
+def opcion_buscar_por_fecha_vencimiento():
+    """Busca tareas por fecha de vencimiento"""
+    # Solicita la fecha con validación
+    while True:
+        fecha = input("\nIngrese fecha de vencimiento (DD/MM/AAAA): ").strip()
+        if not fecha:
+            print("Debe ingresar una fecha")
+            return
+        if not validar_fecha(fecha):
+            print("Formato invalido. Use DD/MM/AAAA")
+            continue
+        break
+
+    # Busca las tareas
+    resultados = buscar_por_fecha_vencimiento(fecha)
+
+    # Muestra los resultados
+    if resultados:
+        mostrar_lista_tareas(resultados, f"TAREAS QUE VENCEN EL: {fecha}")
+    else:
+        print(f"\nNo hay tareas que venzan el {fecha}")
+
+def opcion_buscar_por_fecha_inicio():
+    """Busca tareas por fecha de inicio"""
+    # Solicita la fecha con validación
+    while True:
+        fecha = input("\nIngrese fecha de inicio (DD/MM/AAAA): ").strip()
+        if not fecha:
+            print("Debe ingresar una fecha")
+            return
+        if not validar_fecha(fecha):
+            print("Formato invalido. Use DD/MM/AAAA")
+            continue
+        break
+
+    # Busca las tareas
+    resultados = buscar_por_fecha_inicio(fecha)
+
+    # Muestra los resultados
+    if resultados:
+        mostrar_lista_tareas(resultados, f"TAREAS QUE INICIAN EL: {fecha}")
+    else:
+        print(f"\nNo hay tareas que inicien el {fecha}")
+
+def opcion_buscar_por_estado():
+    """Busca tareas por estado"""
+    # Muestra las opciones de estado
+    print("\nSeleccione el estado:")
+    print("1. En proceso")
+    print("2. Completada")
+
+    # Solicita la selección
+    opcion = input("\nOpcion (1-2): ").strip()
+
+    if opcion == "1":
+        estado = "En proceso"
+    elif opcion == "2":
+        estado = "Completada"
+    else:
+        print("Opcion invalida")
+        return
+
+    # Busca las tareas
+    resultados = buscar_por_estado(estado)
+
+    # Muestra los resultados
+    if resultados:
+        mostrar_lista_tareas(resultados, f"TAREAS: {estado.upper()}")
+    else:
+        print(f"\nNo hay tareas con estado: {estado}")
+
+def opcion_buscar_por_codigo():
+    """Busca una tarea por código"""
+    # Solicita el código
+    codigo = input("\nIngrese el codigo de la tarea: ").strip()
+    if not codigo:
+        print("Debe ingresar un codigo")
+        return
+
+    # Busca la tarea
+    resultados = buscar_por_codigo(codigo)
+
+    # Muestra el resultado
+    if resultados:
+        # Obtiene el código real (con mayúsculas)
+        codigo_real = list(resultados.keys())[0]
+        mostrar_detalle_tarea(codigo_real)
+    else:
+        print(f"\nNo existe una tarea con el codigo: {codigo}")
+
 def submenu_ver_tareas():
     """Submenú para ver tareas"""
     opciones = {
@@ -467,16 +617,62 @@ def submenu_ver_tareas():
             print("\nOpcion no valida")
             pausar()
 
+def submenu_buscar_tareas():
+    """Submenú para buscar tareas"""
+    # Define las opciones del submenú de búsqueda
+    opciones = {
+        "1": ("Buscar por materia", opcion_buscar_por_materia),
+        "2": ("Buscar por fecha vencimiento", opcion_buscar_por_fecha_vencimiento),
+        "3": ("Buscar por fecha inicio", opcion_buscar_por_fecha_inicio),
+        "4": ("Buscar por estado", opcion_buscar_por_estado),
+        "5": ("Buscar por codigo", opcion_buscar_por_codigo),
+        "6": ("Volver al menu principal", None),
+    }
+
+    # Bucle del submenú
+    while True:
+        # Limpia pantalla y muestra el encabezado
+        limpiar_pantalla()
+        linea_separadora()
+        print("         BUSCAR TAREAS - SUBMENU")
+        linea_separadora()
+
+        # Muestra todas las opciones
+        for num, (descripcion, _) in opciones.items():
+            print(f"{num}. {descripcion}")
+
+        linea_separadora()
+
+        # Solicita la opción al usuario
+        opcion = input("\nSeleccione una opcion (1-6): ").strip()
+
+        # Si es volver, sale del bucle
+        if opcion == "6":
+            break
+
+        # Ejecuta la opción seleccionada si es válida
+        if opcion in opciones and opciones[opcion][1]:
+            try:
+                opciones[opcion][1]()
+                pausar()
+            except Exception as e:
+                print(f"\nError: {e}")
+                pausar()
+        else:
+            print("\nOpcion no valida")
+            pausar()
+
 def ejecutar_menu_principal():
     """Ejecuta el menú principal del programa"""
     opciones = {
         "1": ("Agregar tarea", opcion_agregar_tarea),
         "2": ("Ver tareas", submenu_ver_tareas),
-        "3": ("Marcar tarea como completada", opcion_marcar_completada),
-        "4": ("Editar tarea", opcion_editar_tarea),
-        "5": ("Eliminar tarea", opcion_eliminar_tarea),
-        "6": ("Borrar todas las tareas", opcion_borrar_todas),
-        "7": ("Salir", None),
+        "3": ("Buscar tareas", submenu_buscar_tareas),
+        "4": ("Marcar tarea como completada", opcion_marcar_completada),
+        "5": ("Editar tarea", opcion_editar_tarea),
+        "6": ("Eliminar tarea", opcion_eliminar_tarea),
+        "7": ("Borrar todas las tareas", opcion_borrar_todas),
+        "8": ("Salir", None),
     }
 
     while True:
@@ -492,15 +688,15 @@ def ejecutar_menu_principal():
         print()
         linea_separadora()
 
-        opcion = input("\nSeleccione una opcion (1-7): ").strip()
+        opcion = input("\nSeleccione una opcion (1-8): ").strip()
 
-        if opcion == "7":
+        if opcion == "8":
             break
 
         if opcion in opciones and opciones[opcion][1]:
             try:
                 opciones[opcion][1]()
-                if opcion != "2":  # No pausar después del submenú
+                if opcion not in ["2", "3"]:  # No pausar después de los submenús
                     pausar()
             except Exception as e:
                 print(f"\nError: {e}")
